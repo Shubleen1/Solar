@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import heroImage from "@/assets/hero-solar.jpg";
 import servicesImage from "@/assets/solar-services.jpg";
 import projectImage from "@/assets/solar-project.jpg";
+// import solarLogo from "@/assets/solar-logo.svg";
 import { Reveal, Stagger, StaggerItem } from "@/components/Reveal";
+import { Section } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,6 +35,7 @@ function HomePage() {
               Trusted Solar EPC Contractor
             </span>
           </div>
+          {/* <img src={solarLogo} alt="Solar Logo" className="animate-fade-up inline-block h-24 w-24 mb-6" style={{ color: "oklch(1 0 0)", animationDelay: "0.05s" }} /> */}
           <h1 className="animate-fade-up text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl lg:text-7xl" style={{ color: "oklch(0.98 0.005 90)", animationDelay: "0.1s" }}>
             Powering India with{" "}
             <span className="text-gradient-solar">Clean Energy</span>
@@ -190,7 +194,10 @@ function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Savings Calculator Component */}
+      <SavingsCalculator />
+
+      {/* CTA - Original Orange Gradient Inline Section */}
       <section className="py-24 px-6 gradient-solar relative overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, oklch(1 0 0) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
         <Reveal className="relative mx-auto max-w-3xl text-center">
@@ -203,11 +210,197 @@ function HomePage() {
               Get Free Quote
             </Link>
             <a href="tel:9813116005" className="rounded-xl border px-8 py-4 text-sm font-semibold transition-all hover:scale-105" style={{ borderColor: "oklch(1 0 0 / 30%)", color: "oklch(1 0 0)" }}>
-              Call: 98131-16005
+              Call: 7087056330
             </a>
           </div>
         </Reveal>
       </section>
     </main>
+  );
+}
+
+// === CALC MODE TYPES ===
+type CalcMode = "residential" | "commercial";
+
+function SavingsCalculator() {
+  const [mode, setMode] = useState<CalcMode>("residential");
+  const isResidential = mode === "residential";
+  
+  // Residential: smaller bills, ₹8/unit, ₹60k/kW capex, govt subsidy applies
+  // Commercial: larger bills, ₹10/unit avg, ₹50k/kW capex (bulk), no subsidy, accelerated depreciation benefit
+  const billRange = isResidential
+    ? { min: 1000, max: 50000, step: 500, default: 8000 }
+    : { min: 20000, max: 500000, step: 5000, default: 100000 };
+    
+  const [bill, setBill] = useState(billRange.default);
+  
+  // Clamp bill when switching modes
+  const clampedBill = Math.min(Math.max(bill, billRange.min), billRange.max);
+  
+  // Calculation differs per mode
+  // Adjusting the commercial calculation: ₹20,000 bill now correctly maps to ~23 kW 
+  const kwRequired = isResidential
+    ? Math.max(1, Math.round(clampedBill / 1000)) 
+    : Math.max(5, Math.round(clampedBill / 870)); // Adjusted divisor for commercial requirements
+    
+  const savingsRate = isResidential ? 0.9 : 0.75; // commercial offsets ~75% (load curve)
+  const annualSavings = Math.round(clampedBill * 12 * savingsRate);
+  
+  const capexPerKw = isResidential ? 60000 : 50000;
+  const subsidy = isResidential ? Math.min(78000, kwRequired >= 3 ? 78000 : 0) : 0;
+  
+  // Lifetime is 30 years
+  const lifetime = annualSavings * 30;
+  
+  const handleBillChange = (v: number) => setBill(v);
+  const handleModeSwitch = (next: CalcMode) => {
+    setMode(next);
+    setBill(next === "residential" ? 8000 : 100000);
+  };
+
+  return (
+    <section className="relative overflow-hidden px-6 py-24 md:py-32" style={{ background: "oklch(0.18 0.03 260)" }}>
+      {/* Purple glow */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        style={{
+          width: "600px",
+          height: "600px",
+          background: "oklch(0.75 0.16 65)",
+          filter: "blur(120px)",
+          opacity: 0.15,
+          borderRadius: "50%",
+        }}
+      />
+      
+      <div className="relative mx-auto max-w-5xl">
+        {/* Massive Heading */}
+        <div className="mb-16 text-center">
+          <p className="text-2xl md:text-3xl font-bold uppercase tracking-[0.3em] text-white/60 mb-4">Estimate</p>
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-black uppercase leading-tight tracking-tighter text-white drop-shadow-2xl">
+            Your<br/>Savings
+          </h2>
+          <p className="mx-auto mt-6 max-w-xl text-white/60">
+            Move the slider to your monthly electricity bill. We'll project the rest.
+          </p>
+        </div>
+        
+        <div className="grid gap-6 lg:grid-cols-[1fr_360px] items-stretch">
+          <div
+            className="rounded-[32px] p-8 md:p-12"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}
+          >
+            {/* Animated Mode Toggle */}
+            <div className="mb-8 inline-flex rounded-full border border-white/10 bg-white/[0.04] p-1.5 gap-1">
+              {(["residential", "commercial"] as CalcMode[]).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => handleModeSwitch(m)}
+                  className={`rounded-full px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                    mode === m
+                      ? "gradient-solar text-white shadow-solar"
+                      : "bg-transparent text-white/60 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex items-end justify-between gap-6">
+              <div>
+                <p className="label-cinematic text-white/60">Monthly Bill</p>
+                <p className="mt-2 text-5xl md:text-7xl font-black text-white">
+                  ₹{clampedBill.toLocaleString("en-IN")}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="label-cinematic text-white/60">System Size</p>
+                <p className="mt-2 text-3xl md:text-4xl font-black text-gradient-solar">
+                  {kwRequired} kW
+                </p>
+              </div>
+            </div>
+            
+            <input
+              type="range"
+              min={billRange.min}
+              max={billRange.max}
+              step={billRange.step}
+              value={clampedBill}
+              onChange={(e) => handleBillChange(Number(e.target.value))}
+              className="cinema-range mt-8 w-full"
+            />
+            
+            <div className="mt-2 flex justify-between text-xs text-white/40">
+              <span>₹{billRange.min.toLocaleString("en-IN")}</span>
+              <span>₹{billRange.max.toLocaleString("en-IN")}</span>
+            </div>
+            
+            <div className="mt-12 grid gap-6 grid-cols-2">
+              {[
+                { label: "Annual Savings", value: `₹${annualSavings.toLocaleString("en-IN")}` },
+                { label: "30-yr Lifetime", value: `₹${(lifetime / 100000).toFixed(1)}L` },
+              ].map((s) => (
+                <div key={s.label} className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 overflow-hidden">
+                  <p className="label-cinematic text-white/50">{s.label}</p>
+                  <p className="mt-2 text-2xl md:text-3xl font-black text-white truncate" title={s.value}>{s.value}</p>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-10 text-center">
+              <Link
+                to="/contact"
+                className="inline-block rounded-full gradient-solar px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white transition-transform hover:scale-[1.02] shadow-solar"
+              >
+                Lock This Estimate
+              </Link>
+            </div>
+          </div>
+          
+          {/* Benefit Highlight Box */}
+          <aside
+            className="relative overflow-hidden rounded-[32px] p-8 md:p-10 flex flex-col justify-between"
+            style={{
+              background: isResidential
+                ? "linear-gradient(160deg, #06b6d4 0%, #ec4899 100%)"
+                : "linear-gradient(160deg, #f59e0b 0%, #7c3aed 100%)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              boxShadow: "0 30px 80px -20px rgba(236,72,153,0.4)",
+            }}
+          >
+            <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
+            <div className="relative">
+              <p className="label-cinematic text-white/80">
+                {isResidential ? "Government Subsidy" : "Business Benefit"}
+              </p>
+              <p className="mt-6 text-6xl md:text-7xl font-black text-white leading-none">
+                {isResidential ? "FLAT ₹78,000" : "80%"}
+              </p>
+              <p className="mt-4 text-lg font-bold uppercase tracking-wide text-white">
+                {isResidential ? "Subsidy Available" : "SLASH OPERATIONAL COSTS"}
+              </p>
+              <p className="mt-6 text-white/90 leading-relaxed">
+                {isResidential ? (
+                  <>For <span className="font-black">3 kW to 8 kW</span> solar plants!</>
+                ) : (
+                  <> <span className="font-black">Drastically reduce your heavy commercial electricity bills and instantly boost your business's bottom line.</span> </>
+                )}
+              </p>
+            </div>
+            <div className="relative mt-8 rounded-2xl bg-black/30 backdrop-blur p-4 border border-white/20">
+              <p className="text-xs uppercase tracking-[0.2em] font-bold text-white">
+                {isResidential ? "Save ₹78,000 upfront · Start process" : "Tax savings · Talk to us"}
+              </p>
+            </div>
+          </aside>
+        </div>
+        
+        <p className="mt-6 text-center text-xs text-white/40">
+          Indicative figures based on average North India irradiance. Final quote after site survey.
+        </p>
+      </div>
+    </section>
   );
 }
