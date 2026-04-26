@@ -14,7 +14,47 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    projectType: "Residential",
+    message: ""
+  });
+
   const [submitted, setSubmitted] = useState(false);
+
+  const handleChange = (e: any) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/queries/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      console.log("Success:", data);
+      setSubmitted(true);
+
+    } catch (err: any) {
+      console.error("Error:", err.message);
+      alert(err.message);
+    }
+  };
 
   return (
     <main className="pt-24">
@@ -27,6 +67,7 @@ function ContactPage() {
           </div>
 
           <div className="grid gap-12 lg:grid-cols-2">
+            
             {/* Contact Info */}
             <div className="space-y-8">
               <div>
@@ -65,44 +106,91 @@ function ContactPage() {
               {submitted ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full gradient-solar mb-4">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} className="h-8 w-8" style={{ color: "oklch(1 0 0)" }}><path d="M5 13l4 4L19 7" /></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} className="h-8 w-8" style={{ color: "oklch(1 0 0)" }}>
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
                   <h3 className="text-xl font-bold text-card-foreground">Thank You!</h3>
                   <p className="mt-2 text-sm text-muted-foreground">We'll get back to you within 24 hours.</p>
                 </div>
               ) : (
-                <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5">
+
                   <h3 className="text-lg font-bold text-card-foreground mb-2">Request a Free Quote</h3>
+
                   <div className="grid gap-4 sm:grid-cols-2">
+                    
                     <div>
                       <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Name</label>
-                      <input required type="text" className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Your name" />
+                      <input
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        type="text"
+                        className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Your name"
+                      />
                     </div>
+
                     <div>
                       <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone</label>
-                      <input required type="tel" className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Your phone" />
+                      <input
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        required
+                        type="tel"
+                        className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Your phone"
+                      />
                     </div>
+
                   </div>
+
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</label>
-                    <input type="email" className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Your email" />
+                    <input
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      type="email"
+                      className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="Your email"
+                    />
                   </div>
+
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Project Type</label>
-                    <select className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                    <select
+                      name="projectType"
+                      value={formData.projectType}
+                      onChange={handleChange}
+                      className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
                       <option>Residential</option>
                       <option>Commercial</option>
                       <option>Industrial</option>
                       <option>Agricultural</option>
                     </select>
                   </div>
+
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Message</label>
-                    <textarea rows={4} className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none" placeholder="Tell us about your project..." />
+                    <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      rows={4}
+                      className="mt-1 w-full rounded-lg border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                      placeholder="Tell us about your project..."
+                    />
                   </div>
+
                   <button type="submit" className="w-full rounded-xl py-3.5 text-sm font-semibold gradient-solar shadow-solar transition-all hover:shadow-solar-lg hover:scale-[1.02]" style={{ color: "oklch(1 0 0)" }}>
                     Send Enquiry
                   </button>
+
                 </form>
               )}
             </div>
