@@ -35,7 +35,7 @@ function ContactPage() {
     e.preventDefault();
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/queries/submit`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}queries/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -13,6 +13,12 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
+  // Redirect logic to call your QR_code frontend portal
+  // const handlePortalLogin = () => {
+  // Screenshot ke hisaab se aapka dusra project localhost:8080 par hai
+  //   window.location.href = "http://localhost:3000/login";
+  // };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-navy/95 backdrop-blur-md border-b border-solar/10">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -51,9 +57,22 @@ export default function Header() {
               </Link>
             );
           })}
+
+          {/* --- NEW LOGIN BUTTON --- */}
+          {/* <button
+            onClick={handlePortalLogin}
+            className="ml-4 mr-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all duration-200 border border-solar/20 hover:bg-solar/10"
+            style={{ 
+              color: "oklch(0.75 0.16 65)",
+              background: "rgba(255, 215, 0, 0.03)" 
+            }}
+          >
+            Login
+          </button> */}
+
           <Link
             to="/contact"
-            className="ml-3 rounded-lg px-5 py-2.5 text-sm font-semibold gradient-solar shadow-solar transition-all duration-200 hover:shadow-solar-lg hover:scale-105"
+            className="rounded-lg px-5 py-2.5 text-sm font-semibold gradient-solar shadow-solar transition-all duration-200 hover:shadow-solar-lg hover:scale-105"
             style={{ color: "oklch(1 0 0)" }}
           >
             Get Quote
@@ -78,6 +97,7 @@ export default function Header() {
         </button>
       </div>
 
+      {/* Mobile Menu */}
       {mobileOpen && (
         <div className="border-t border-solar/10 bg-navy/98 backdrop-blur-md px-6 py-4 md:hidden">
           {navLinks.map((link) => (
@@ -91,6 +111,14 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+          {/* Mobile Login Button */}
+          {/* <button
+            onClick={handlePortalLogin}
+            className="w-full mt-4 rounded-lg px-4 py-3 text-sm font-bold text-center border border-solar/30"
+            style={{ color: "oklch(0.75 0.16 65)" }}
+          >
+            Portal Login
+          </button> */}
         </div>
       )}
     </header>
